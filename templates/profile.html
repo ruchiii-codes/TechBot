@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile</title>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Poppins", sans-serif;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column; /* Added to stack header and wrapper vertically */
+            align-items: center;
+            min-height: 100vh;
+            background: url("{{ url_for('static', filename='bg.png') }}") center / cover no-repeat;
+            background-size: cover;
+            background-position: center;
+        }
+
+        header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center; /* Center align items vertically */
+            padding: 10px 20px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #ddd;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Optional shadow for the header */
+        }
+
+        header img {
+            height: 60px;
+        }
+
+        header .profile {
+            display: flex;
+            align-items: center;
+        }
+
+        header .profile img {
+            height: 30px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        header .profile span {
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .wrapper {
+            width: 420px;
+            background: transparent;
+            border: 2px solid rgba(255, 255, 255, .2);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 0 10px rgba(0, 0, 0, .2);
+            color: #fff;
+            border-radius: 10px;
+            padding: 30px 40px;
+            text-align: center;
+            margin-top: 20px; /* Adds space between header and profile content */
+        }
+
+        .profile-header {
+            margin-bottom: 20px;
+        }
+
+        .profile-pic {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, .2);
+            margin-bottom: 10px;
+        }
+
+        .profile-header h1 {
+            font-size: 24px;
+        }
+
+        .bio {
+            font-size: 16px;
+            margin-bottom: 30px;
+        }
+
+        .input-box {
+            position: relative;
+            width: 100%;
+            height: 50px;
+            margin: 20px 0;
+        }
+
+        .input-box input {
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            border: 2px solid rgba(255, 255, 255, .2);
+            border-radius: 40px;
+            font-size: 16px;
+            color: #fff;
+            padding: 20px 45px 20px 20px;
+        }
+
+        .input-box i {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 20px;
+        }
+
+        .btn {
+            width: 100%;
+            height: 45px;
+            background: #fff;
+            border: none;
+            outline: none;
+            border-radius: 40px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, .1);
+            cursor: pointer;
+            font-size: 16px;
+            color: #333;
+            font-weight: 600;
+        }
+        .btn:hover{
+            background-color: red;
+            color: #fff;
+        }
+
+        .logout-link {
+            font-size: 14.5px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .logout-link p a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .logout-link p a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<!--
+        #map {
+            height: 200px;
+            width: 100%;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }-->
+<body>
+    <header>
+        <img src="{{ url_for('static', filename='Chatbot_Logo.png') }}" alt="Logo">
+        <div class="profile">
+            <a href="/">
+                <i class='bx bxs-home'></i>
+                <span>Home</span>
+            </a>
+        </div>
+    </header>
+    <div class="wrapper">
+        <div class="profile-header">
+            <img src="{{ url_for('static', filename='profile_icon.png') }}" alt="Profile Picture" class="profile-pic">
+            <h1>Your Profile</h1>
+        </div>
+        <div class="profile-details">
+            <div class="input-box">
+                <input type="text" value="{{ username }}" disabled>
+                <i class='bx bxs-user'></i>
+            </div>
+            <div class="input-box">
+                <input type="email" value="{{ email }}" disabled>
+                <i class='bx bxs-envelope'></i>
+            </div>
+            <div class="input-box">
+                <input type="text" value="Ahmednagar, MH, IN" disabled>
+                <!-- Leaflet Map -->
+                <!--<div id="map"></div>-->
+                <i class='bx bx-map'></i>
+            </div>
+            <!-- Leaflet Map -->
+            <div id="map"></div>
+            <button class="btn" onclick="window.location.href='{{ url_for('logout') }}'">Logout</button>
+        </div>
+    </div>
+
+    <!--<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>-->
+    <script>
+        function initMap() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function (position) {
+                    var userLocation = [position.coords.latitude, position.coords.longitude];
+                    var map = L.map('map').setView(userLocation, 13);
+
+                    // Set up the OpenStreetMap layer
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; TechBot'
+                    }).addTo(map);
+
+                    // Add a marker for the user's location
+                    var marker = L.marker(userLocation).addTo(map)
+                        .bindPopup('You are here!')
+                        .openPopup();
+                }, function () {
+                    alert("Unable to retrieve your location.");
+                });
+            } else {
+                alert("Enable Location on your browser.");
+            }
+        }
+
+        // Initialize the map when the page loads
+        window.onload = initMap;
+    </script>
+</body>
+
+</html>

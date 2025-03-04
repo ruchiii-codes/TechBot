@@ -1,0 +1,13 @@
+<!-- flash_messages.html -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <ul class="flashes">
+        {% for category, message in messages %}
+            <!--<li class="{{ category }}">{{ message }}</li>-->
+            <script>
+                alert("{{ message }}");
+            </script>
+        {% endfor %}
+        </ul>
+    {% endif %}
+{% endwith %}
